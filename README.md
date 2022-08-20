@@ -8,6 +8,11 @@ otherwise stated.
 
 ## Examples
 
+Examples of input and decoded frames. Note the distinctive checkerboard
+artifacts which are averaged out when viewing multiple frames. It seems Xerox
+had [a patent](https://patents.google.com/patent/US6490008B1/en) on removing
+them.
+
 ![](img/resampled-640px-SMPTE_Color_Bars.svg.png)
 ![](img/decoded-640px-SMPTE_Color_Bars.svg.png)
 
