@@ -1,2 +1,7 @@
 jupyterlab
 Pillow
+altair
+pandas
+numpy
+scipy
+matplotlib
