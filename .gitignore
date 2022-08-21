@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 tv-signal.npz
 reconstructed-frame.png
+decoded-*.png
