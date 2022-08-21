@@ -21,3 +21,6 @@ them.
 
 ![](img/resampled-parrots.png)
 ![](img/decoded-parrots.gif)
+
+![](img/resampled-ofah.jpg)
+![](img/decoded-ofah.gif)
