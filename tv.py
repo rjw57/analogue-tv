@@ -365,7 +365,7 @@ def decode_fields(blocks, *, sample_rate):
         yield buffer_samples[vsync_start:vsync_end]
 
 
-def decode_field(field_time, field, sample_rate):
+def decode_field(field_time, field, sample_rate, *, colour=True):
     # The horizontal sync is recovered by triggering on low-going pulses from the
     # composite sync but not re-triggering for some hold time. (In the sync separator
     # circuit this is done by having the reset line for the one-shot trigger driven
@@ -412,11 +412,12 @@ def decode_field(field_time, field, sample_rate):
     # Decode lines
     line_time = field_time
     decoded_lines = np.zeros((FRAME_ACTIVE_LINES >> 1, FRAME_H_PIXELS, 3))
+    decode_line_cb = decode_line if colour else decode_line_bw
     for line_idx, (start_idx, end_idx) in enumerate(
         zip(h_sync_edges[: FRAME_ACTIVE_LINES >> 1], h_sync_edges[1:])
     ):
         line_samples = field[start_idx:end_idx]
-        decoded_lines[line_idx, ...] = decode_line(
+        decoded_lines[line_idx, ...] = decode_line_cb(
             line_idx, field_time + start_idx / sample_rate, line_samples, sample_rate
         )
 
@@ -428,6 +429,30 @@ def reconstruct_colourburst_phase(cb_freq, cb_times, cb_samples):
     response = np.sum(cb_samples * complex_cb)
     cb_phase = -np.angle(response)
     return cb_phase
+
+
+def decode_line_bw(line_idx, line_time, line, sample_rate):
+    # Times within line of each sample.
+    line_times = line_time + np.arange(line.shape[0]) / sample_rate
+    line_luma = (line - BLACK_LEVEL) / (WHITE_LEVEL - BLACK_LEVEL)
+
+    # Convert Y to RGB
+    line_rgb = np.zeros((line_luma.shape[0], 3))
+    for c in (0, 1, 2):
+        line_rgb[..., c] = line_luma
+
+    # Resample line into pixels
+    line_interpolator = scipy.interpolate.interp1d(
+        x=line_times, y=line_rgb, axis=0, kind="quadratic"
+    )
+    pixel_duration = ACTIVE_DURATION / FRAME_H_PIXELS
+    pixel_times = (
+        line_time
+        + np.arange(FRAME_H_PIXELS) * pixel_duration
+        + H_SYNC_DURATION
+        + BACK_PORCH_DURATION
+    )
+    return np.clip(line_interpolator(pixel_times), 0, 1)
 
 
 def decode_line(line_idx, line_time, line, sample_rate):

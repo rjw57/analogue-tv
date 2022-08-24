@@ -17,7 +17,7 @@ def main():
     blocks = []
     for block in signal_blocks(encode_fields(opts["<inputimage>"])):
         blocks.append(block.astype(np.float16))
-        if len(blocks) >= 6:
+        if len(blocks) >= 60:
             break
 
     np.savez_compressed(
